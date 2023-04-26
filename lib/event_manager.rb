@@ -12,24 +12,16 @@ def peak_registration_hours(contents)
   registration_hours = contents.map do |row|
     Time.strptime(row[:regdate], '%m/%d/%y %H:%M').hour
   end
-  
-  max_registrations = registration_hours.tally.values.max
-  
-  peak_hours = registration_hours.tally.select do |hour, count| 
-    hour if count == max_registrations
-  end
+
+  registration_hours.tally.sort_by { |hour, count| count }.reverse
 end
 
 def peak_registration_days(contents)
   registration_days = contents.map do |row|
     Time.strptime(row[:regdate], '%m/%d/%y %H:%M').strftime('%A')
   end
-  
-  max_registrations = registration_days.tally.values.max
-  
-  peak_days = registration_days.tally.select do |day, count| 
-    day if count == max_registrations
-  end
+
+  registration_days.tally.sort_by { |weekday, count| count }.reverse
 end
 
 def format_as_phone_number(phone_number)
@@ -88,7 +80,6 @@ def save_thank_you_letter(id, form_letter)
 end
 
 def contents
-  # puts '#contents'
   CSV.open(
     'event_attendees.csv',
     headers: true,
@@ -98,11 +89,17 @@ end
 
 puts 'Event Manager Initialized'
 
-peak_hours = peak_registration_hours(contents)
-puts "Peak registration hours are: #{peak_hours.keys}"
+puts "\n"
 
-peak_days = peak_registration_days(contents)
-puts "Peak registration days are: #{peak_days.keys}"
+peak_registration_hours(contents).each do |hour, count|
+  puts "#{hour}:00 - #{hour + 1}:00 - #{count} registration(s)"
+end
+
+puts "\n"
+
+peak_registration_days(contents).each do |weekday, count|
+  puts "#{weekday} - #{count} registration(s)"
+end
 
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
