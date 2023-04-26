@@ -20,6 +20,18 @@ def peak_registration_hours(contents)
   end
 end
 
+def peak_registration_days(contents)
+  registration_days = contents.map do |row|
+    Time.strptime(row[:regdate], '%m/%d/%y %H:%M').strftime('%A')
+  end
+  
+  max_registrations = registration_days.tally.values.max
+  
+  peak_days = registration_days.tally.select do |day, count| 
+    day if count == max_registrations
+  end
+end
+
 def format_as_phone_number(phone_number)
   # 2062263000
   group_a = phone_number[0, 3]
@@ -88,6 +100,9 @@ puts 'Event Manager Initialized'
 
 peak_hours = peak_registration_hours(contents)
 puts "Peak registration hours are: #{peak_hours.keys}"
+
+peak_days = peak_registration_days(contents)
+puts "Peak registration days are: #{peak_days.keys}"
 
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
