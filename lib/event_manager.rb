@@ -8,6 +8,18 @@ def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5, '0')[0..4]
 end
 
+def peak_registration_hours(contents)
+  registration_hours = contents.map do |row|
+    Time.strptime(row[:regdate], '%m/%d/%y %H:%M').hour
+  end
+  
+  max_registrations = registration_hours.tally.values.max
+  
+  peak_hours = registration_hours.tally.select do |hour, count| 
+    hour if count == max_registrations
+  end
+end
+
 def format_as_phone_number(phone_number)
   # 2062263000
   group_a = phone_number[0, 3]
@@ -63,13 +75,19 @@ def save_thank_you_letter(id, form_letter)
   end
 end
 
+def contents
+  # puts '#contents'
+  CSV.open(
+    'event_attendees.csv',
+    headers: true,
+    header_converters: :symbol
+  )
+end
+
 puts 'Event Manager Initialized'
 
-contents = CSV.open(
-  'event_attendees.csv',
-  headers: true,
-  header_converters: :symbol
-)
+peak_hours = peak_registration_hours(contents)
+puts "Peak registration hours are: #{peak_hours.keys}"
 
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
@@ -79,10 +97,9 @@ contents.each do |row|
   name = row[:first_name]
   zipcode = clean_zipcode(row[:zipcode])
   legislators = legislators_by_zipcode(zipcode)
-
+  
   phone_number = clean_phone_number(row[:homephone])
-
   form_letter = erb_template.result(binding)
-
+  
   save_thank_you_letter(id, form_letter)
 end
