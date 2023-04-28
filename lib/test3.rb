@@ -46,23 +46,23 @@ class People
     @persons = []
   end
 
-  def serialize
-    obj = @persons.map do |person|
-      person.serialize
-    end
+  # def serialize
+  #   obj = @persons.map do |person|
+  #     person.serialize
+  #   end
 
-    @@serializer.dump obj
-  end
+  #   @@serializer.dump obj
+  # end
 
-  def unserialize(string)
-    obj = @@serializer.parse string
-    @persons = []
-    obj.each do |person_string|
-      person = Person.new "", 0, ""
-      person.unserialize(person_string)
-      @persons << person
-    end
-  end
+  # def unserialize(string)
+  #   obj = @@serializer.parse string
+  #   @persons = []
+  #   obj.each do |person_string|
+  #     person = Person.new "", 0, ""
+  #     person.unserialize(person_string)
+  #     @persons << person
+  #   end
+  # end
 
   def <<(person)
     @persons << person
@@ -99,6 +99,7 @@ people2 = People.new
 
 p people2
 
+binding.pry
 people2.unserialize(serialized_string)
 
 p people2
